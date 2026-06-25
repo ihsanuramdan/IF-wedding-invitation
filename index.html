@@ -194,6 +194,21 @@
             font-weight: 300;
         }
 
+        /* greeting personalisasi */
+        .hero .greeting {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            color: var(--gold);
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+            opacity: 0.85;
+            font-weight: 400;
+        }
+        .hero .greeting span {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
         .hero .sub-line {
             font-family: 'Great Vibes', cursive;
             font-size: 1.2rem;
@@ -917,6 +932,9 @@
             .hero h1 .ampersand {
                 font-size: 3.2rem;
             }
+            .hero .greeting {
+                font-size: 0.95rem;
+            }
             .countdown .cd-item {
                 min-width: 56px;
                 padding: 0.4rem 0.6rem;
@@ -969,6 +987,10 @@
     <!-- ===== HERO ===== -->
     <section class="hero" id="home">
         <div class="ornament">✦ ✦ ✦</div>
+
+        <!-- SAPAAN PERSONALISASI -->
+        <div class="greeting">Kepada Yth. <span id="guestName">Sahabat</span></div>
+
         <div class="sub-line">The Wedding of</div>
         <h1>
             Ihsan <span class="ampersand">&</span> Firda
@@ -1227,6 +1249,20 @@
 
     <!-- ===== SCRIPTS ===== -->
     <script>
+        // ============================================================
+        // 0. PERSONALISASI NAMA TAMU DARI URL
+        // ============================================================
+        (function setGuestName() {
+            const params = new URLSearchParams(window.location.search);
+            let nama = params.get('nama');
+            if (nama) {
+                nama = decodeURIComponent(nama).trim();
+                if (nama.length > 0) {
+                    document.getElementById('guestName').textContent = nama;
+                }
+            }
+        })();
+
         // ============================================================
         // 1. COUNTDOWN
         // ============================================================
