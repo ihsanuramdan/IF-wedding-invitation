@@ -1178,7 +1178,7 @@
     <div id="toast" class="toast">✨ Nomor rekening disalin!</div>
 
     <!-- ===== MUSIC PLAYER ===== -->
-    <audio id="bg-music" loop preload="auto">
+    <audio id="bg-music" loop preload="auto" autoplay>
         <!-- Sumber musik instrumental romantis dari Bensound (royalty-free) -->
         <source src="https://www.bensound.com/bensound-music/bensound-romantic.mp3" type="audio/mpeg" />
         <!-- Fallback: jika file di atas tidak bisa diakses, gunakan link alternatif dari Pixabay -->
@@ -1594,61 +1594,69 @@
         }
 
         // ============================================================
-        // 6. MUSIC PLAYER
+        // 6. MUSIC PLAYER — AUTOPLAY LANGSUNG
         // ============================================================
         const audio = document.getElementById('bg-music');
         const musicToggle = document.getElementById('musicToggle');
         const musicIcon = document.getElementById('musicIcon');
 
-        // Coba autoplay (browser mungkin memblokir, tapi kita coba)
-        let autoplayAttempted = false;
-
-        function attemptAutoplay() {
-            if (autoplayAttempted) return;
-            autoplayAttempted = true;
-            audio.play().then(() => {
+        // Fungsi untuk memperbarui ikon dan status tombol
+        function updateMusicUI(playing) {
+            if (playing) {
                 musicIcon.className = 'fas fa-pause';
                 musicToggle.classList.add('playing');
-            }).catch(() => {
-                // Autoplay gagal, biarkan tombol tetap play
-                musicIcon.className = 'fas fa-play';
-                musicToggle.classList.remove('playing');
-            });
-        }
-
-        // Coba autoplay saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', attemptAutoplay);
-        // Juga coba saat pengguna berinteraksi dengan halaman (klik/tap)
-        document.addEventListener('click', function firstInteraction() {
-            attemptAutoplay();
-            document.removeEventListener('click', firstInteraction);
-        }, { once: true });
-
-        // Fungsi toggle musik
-        function toggleMusic() {
-            if (audio.paused) {
-                audio.play().then(() => {
-                    musicIcon.className = 'fas fa-pause';
-                    musicToggle.classList.add('playing');
-                }).catch(() => {
-                    // Gagal play
-                });
             } else {
-                audio.pause();
                 musicIcon.className = 'fas fa-play';
                 musicToggle.classList.remove('playing');
             }
         }
 
-        // Update ikon saat audio berakhir (loop otomatis)
+        // Coba putar musik secara otomatis (didukung oleh atribut autoplay pada tag audio)
+        // Namun kita juga panggil secara eksplisit untuk memastikan
+        function startMusic() {
+            audio.play().then(() => {
+                updateMusicUI(true);
+            }).catch((err) => {
+                // Jika autoplay diblokir, kita tetap set ikon ke play (biar user klik sendiri)
+                updateMusicUI(false);
+                console.log('Autoplay diblokir oleh browser, pengguna perlu klik tombol.', err);
+            });
+        }
+
+        // Jalankan autoplay saat halaman dimuat
+        window.addEventListener('load', startMusic);
+
+        // Juga coba saat pengguna berinteraksi (jika autoplay gagal, ini akan membantu)
+        // Tapi kita tidak perlu menambahkan event listener berulang-ulang,
+        // karena tombol sudah handle toggle.
+
+        // Fungsi toggle (dipanggil dari onclick tombol)
+        function toggleMusic() {
+            if (audio.paused) {
+                audio.play().then(() => {
+                    updateMusicUI(true);
+                }).catch(() => {});
+            } else {
+                audio.pause();
+                updateMusicUI(false);
+            }
+        }
+
+        // Jika audio selesai (loop otomatis karena atribut loop)
         audio.addEventListener('ended', () => {
-            // loop akan otomatis memutar ulang karena atribut loop
+            // loop akan otomatis memutar ulang
         });
 
-        // Jika audio gagal dimuat, tampilkan notifikasi
-        audio.addEventListener('error', () => {
-            console.warn('Audio tidak dapat dimuat. Pastikan koneksi internet stabil.');
-            // Tampilkan pesan singkat di konsol, tidak mengganggu user
+        // Update UI jika audio tiba-tiba pause karena alasan lain
+        audio.addEventListener('pause', () => {
+            // Jangan ubah UI saat pause karena kita mungkin memang pause via tombol
+            // Tapi jika pause bukan karena user, kita bisa sync
+            // Untuk sederhana, kita sinkronkan saat toggle dipanggil.
+        });
+
+        // Sinkronkan UI saat audio play
+        audio.addEventListener('play', () => {
+            updateMusicUI(true);
         });
 
         // ============================================================
@@ -1665,7 +1673,7 @@
         });
 
         console.log('💍 Undangan Ihsan & Firda — 25 Juli 2026');
-        console.log('🎵 Musik instrumental romantis siap diputar.');
+        console.log('🎵 Musik instrumental romantis diputar otomatis.');
     </script>
 
 </body>
