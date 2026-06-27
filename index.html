@@ -487,7 +487,7 @@
             border: 1px solid rgba(201, 169, 110, 0.08);
             transition: transform 0.3s ease;
             flex: 1;
-            min-height: 320px; /* tinggi minimum sama untuk kedua kartu */
+            min-height: 320px;
             justify-content: center;
             width: 100%;
         }
@@ -969,6 +969,63 @@
             margin: 0.2rem 0 0.4rem;
         }
 
+        /* ===== MUSIC PLAYER ===== */
+        .music-control {
+            position: fixed;
+            bottom: 28px;
+            right: 24px;
+            z-index: 999;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 28px rgba(30, 26, 26, 0.18);
+            border: 1px solid rgba(201, 169, 110, 0.25);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--gold);
+            font-size: 1.4rem;
+        }
+
+        .music-control:hover {
+            transform: scale(1.08);
+            box-shadow: 0 12px 36px rgba(201, 169, 110, 0.3);
+        }
+
+        .music-control.playing {
+            background: var(--gold);
+            color: #fff;
+            border-color: var(--gold);
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 12px rgba(201, 169, 110, 0);
+            }
+        }
+
+        .music-control .fa-circle-notch {
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (min-width: 640px) {
             .container {
@@ -1024,6 +1081,13 @@
             .flower-deco.fl-4 {
                 font-size: 3.6rem;
             }
+            .music-control {
+                width: 64px;
+                height: 64px;
+                font-size: 1.6rem;
+                bottom: 32px;
+                right: 32px;
+            }
         }
 
         @media (max-width: 420px) {
@@ -1074,6 +1138,13 @@
             .flower-deco.fl-2 {
                 font-size: 2.6rem !important;
             }
+            .music-control {
+                width: 48px;
+                height: 48px;
+                font-size: 1.2rem;
+                bottom: 20px;
+                right: 16px;
+            }
         }
 
         /* toast notification */
@@ -1105,6 +1176,20 @@
 
     <!-- ===== TOAST ===== -->
     <div id="toast" class="toast">✨ Nomor rekening disalin!</div>
+
+    <!-- ===== MUSIC PLAYER ===== -->
+    <audio id="bg-music" loop preload="auto">
+        <!-- Sumber musik instrumental romantis dari Bensound (royalty-free) -->
+        <source src="https://www.bensound.com/bensound-music/bensound-romantic.mp3" type="audio/mpeg" />
+        <!-- Fallback: jika file di atas tidak bisa diakses, gunakan link alternatif dari Pixabay -->
+        <source src="https://cdn.pixabay.com/audio/2022/10/25/audio_0b7a5e8f4c.mp3" type="audio/mpeg" />
+        Browser Anda tidak mendukung pemutar audio.
+    </audio>
+
+    <!-- Tombol kontrol musik -->
+    <div class="music-control" id="musicToggle" onclick="toggleMusic()" title="Putar/Hentikan Musik">
+        <i class="fas fa-play" id="musicIcon"></i>
+    </div>
 
     <!-- ===== HERO ===== -->
     <section class="hero" id="home">
@@ -1509,7 +1594,65 @@
         }
 
         // ============================================================
-        // 6. SMOOTH ANCHOR
+        // 6. MUSIC PLAYER
+        // ============================================================
+        const audio = document.getElementById('bg-music');
+        const musicToggle = document.getElementById('musicToggle');
+        const musicIcon = document.getElementById('musicIcon');
+
+        // Coba autoplay (browser mungkin memblokir, tapi kita coba)
+        let autoplayAttempted = false;
+
+        function attemptAutoplay() {
+            if (autoplayAttempted) return;
+            autoplayAttempted = true;
+            audio.play().then(() => {
+                musicIcon.className = 'fas fa-pause';
+                musicToggle.classList.add('playing');
+            }).catch(() => {
+                // Autoplay gagal, biarkan tombol tetap play
+                musicIcon.className = 'fas fa-play';
+                musicToggle.classList.remove('playing');
+            });
+        }
+
+        // Coba autoplay saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', attemptAutoplay);
+        // Juga coba saat pengguna berinteraksi dengan halaman (klik/tap)
+        document.addEventListener('click', function firstInteraction() {
+            attemptAutoplay();
+            document.removeEventListener('click', firstInteraction);
+        }, { once: true });
+
+        // Fungsi toggle musik
+        function toggleMusic() {
+            if (audio.paused) {
+                audio.play().then(() => {
+                    musicIcon.className = 'fas fa-pause';
+                    musicToggle.classList.add('playing');
+                }).catch(() => {
+                    // Gagal play
+                });
+            } else {
+                audio.pause();
+                musicIcon.className = 'fas fa-play';
+                musicToggle.classList.remove('playing');
+            }
+        }
+
+        // Update ikon saat audio berakhir (loop otomatis)
+        audio.addEventListener('ended', () => {
+            // loop akan otomatis memutar ulang karena atribut loop
+        });
+
+        // Jika audio gagal dimuat, tampilkan notifikasi
+        audio.addEventListener('error', () => {
+            console.warn('Audio tidak dapat dimuat. Pastikan koneksi internet stabil.');
+            // Tampilkan pesan singkat di konsol, tidak mengganggu user
+        });
+
+        // ============================================================
+        // 7. SMOOTH ANCHOR
         // ============================================================
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
@@ -1522,6 +1665,7 @@
         });
 
         console.log('💍 Undangan Ihsan & Firda — 25 Juli 2026');
+        console.log('🎵 Musik instrumental romantis siap diputar.');
     </script>
 
 </body>
