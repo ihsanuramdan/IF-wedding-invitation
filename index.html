@@ -1179,7 +1179,7 @@
 
     <!-- ===== MUSIC PLAYER ===== -->
     <audio id="bg-music" loop preload="auto">
-        <!-- Sumber musik dari Github -->
+        <!-- Sumber musik dari github -->
         <source src="background.mp3" type="audio/mpeg" />
         Browser Anda tidak mendukung pemutar audio.
     </audio>
@@ -1615,7 +1615,7 @@
                 updateMusicUI(true);
                 musicStarted = true;
                 return true;
-            }).catch(() => {
+            }).catch((err) => {
                 updateMusicUI(false);
                 musicStarted = false;
                 return false;
@@ -1627,25 +1627,22 @@
             if (musicStarted) return;
             playMusic().then(success => {
                 if (success) {
-                    // Hapus listener sekali setelah berhasil
+                    // Hapus listener setelah berhasil
                     document.removeEventListener('click', attemptAutoplay);
                     document.removeEventListener('touchstart', attemptAutoplay);
-                    document.removeEventListener('scroll', attemptAutoplay);
                 }
             });
         }
 
-        // Coba autoplay saat halaman dimuat
+        // 1. Coba autoplay saat halaman dimuat (dengan delay agar audio siap)
         window.addEventListener('load', function() {
-            // Beri sedikit jeda agar audio siap
-            setTimeout(attemptAutoplay, 300);
+            setTimeout(attemptAutoplay, 100);
         });
 
-        // Jika autoplay gagal karena kebijakan browser, coba lagi saat pengguna berinteraksi
+        // 2. Jika autoplay gagal karena kebijakan browser, coba lagi saat interaksi pertama
+        //    (pengguna mungkin klik di mana saja, bukan tombol khusus)
         document.addEventListener('click', attemptAutoplay);
         document.addEventListener('touchstart', attemptAutoplay);
-        // Scroll juga bisa memicu (misal user scroll untuk membuka undangan)
-        document.addEventListener('scroll', attemptAutoplay, { once: true });
 
         // Fungsi toggle (dipanggil dari onclick tombol)
         function toggleMusic() {
@@ -1662,7 +1659,6 @@
         audio.addEventListener('play', () => updateMusicUI(true));
         audio.addEventListener('pause', () => {
             // Hanya update jika bukan karena toggle (tapi kita biarkan sinkron)
-            // Kita gunakan timeout untuk menghindari konflik dengan toggle
             setTimeout(() => {
                 if (audio.paused) {
                     updateMusicUI(false);
